@@ -2,7 +2,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 
 // 🔴 GANTI DENGAN MILIK ANDA
 export const SUPABASE_URL = 'https://bjrgrzvyjdlagzlsprrs.supabase.co';
-export const SUPABASE_ANON_KEY = 'sb_publishable_GedO3ubXDuI0GLP4usWwdA_ABJwZm2W';
+export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJqcmdyenZ5amRsYWd6bHNwcnJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA3NjcyNjEsImV4cCI6MjEwNjM0MzI2MX0.Cse0N3pIk4yBF7LdA38TK5tBhkatFMLyFvEg8WfhuZo';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
