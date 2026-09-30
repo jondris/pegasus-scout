@@ -1,8 +1,7 @@
 -- =========================================================
--- PEGASUS SCOUT - Skema Database Supabase
+-- PEGASUS SCOUT — Skema Supabase
 -- =========================================================
 
--- Tabel profil pengguna (terhubung ke auth.users)
 create table if not exists profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text,
@@ -12,7 +11,6 @@ create table if not exists profiles (
   created_at timestamptz default now()
 );
 
--- Trigger: otomatis buat profil saat user baru daftar via Google
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
@@ -33,7 +31,6 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
 
--- Tabel biodata penggalang
 create table if not exists penggalang (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references profiles(id) on delete cascade unique,
@@ -47,7 +44,6 @@ create table if not exists penggalang (
   updated_at timestamptz default now()
 );
 
--- Tabel absensi latihan
 create table if not exists absensi (
   id uuid primary key default gen_random_uuid(),
   penggalang_id uuid references penggalang(id) on delete cascade,
@@ -58,7 +54,6 @@ create table if not exists absensi (
   created_at timestamptz default now()
 );
 
--- Tabel progres SKU
 create table if not exists sku (
   id uuid primary key default gen_random_uuid(),
   penggalang_id uuid references penggalang(id) on delete cascade unique,
@@ -68,7 +63,6 @@ create table if not exists sku (
   updated_at timestamptz default now()
 );
 
--- Tabel SKK
 create table if not exists skk (
   id uuid primary key default gen_random_uuid(),
   penggalang_id uuid references penggalang(id) on delete cascade,
@@ -77,40 +71,37 @@ create table if not exists skk (
   created_at timestamptz default now()
 );
 
--- ============ ROW LEVEL SECURITY ============
-alter table profiles enable row level security;
+-- RLS
+alter table profiles  enable row level security;
 alter table penggalang enable row level security;
-alter table absensi enable row level security;
-alter table sku enable row level security;
-alter table skk enable row level security;
+alter table absensi   enable row level security;
+alter table sku       enable row level security;
+alter table skk       enable row level security;
 
--- Profiles: semua user login bisa lihat, hanya bisa update diri sendiri
-create policy "profiles_read" on profiles for select using (auth.role() = 'authenticated');
-create policy "profiles_update_self" on profiles for update using (auth.uid() = id);
+create policy "profiles_read"        on profiles  for select using (auth.role() = 'authenticated');
+create policy "profiles_update_self" on profiles  for update using (auth.uid() = id);
 
--- Penggalang: semua login bisa lihat, hanya pemilik bisa update biodata sendiri
-create policy "penggalang_read" on penggalang for select using (auth.role() = 'authenticated');
-create policy "penggalang_insert_self" on penggalang for insert with check (auth.uid() = user_id);
-create policy "penggalang_update_self" on penggalang for update using (auth.uid() = user_id);
-create policy "penggalang_delete_self" on penggalang for delete using (auth.uid() = user_id);
+create policy "penggalang_read"          on penggalang for select using (auth.role() = 'authenticated');
+create policy "penggalang_insert_self"   on penggalang for insert with check (auth.uid() = user_id);
+create policy "penggalang_update_self"   on penggalang for update using (auth.uid() = user_id);
+create policy "penggalang_delete_self"   on penggalang for delete using (auth.uid() = user_id);
 
--- Absensi, SKU, SKK: hanya pemilik data penggalang yang bisa kelola
-create policy "absensi_read" on absensi for select using (auth.role() = 'authenticated');
+create policy "absensi_read"     on absensi for select using (auth.role() = 'authenticated');
 create policy "absensi_all_self" on absensi for all using (
   exists (select 1 from penggalang p where p.id = absensi.penggalang_id and p.user_id = auth.uid())
 );
 
-create policy "sku_read" on sku for select using (auth.role() = 'authenticated');
+create policy "sku_read"     on sku for select using (auth.role() = 'authenticated');
 create policy "sku_all_self" on sku for all using (
   exists (select 1 from penggalang p where p.id = sku.penggalang_id and p.user_id = auth.uid())
 );
 
-create policy "skk_read" on skk for select using (auth.role() = 'authenticated');
+create policy "skk_read"     on skk for select using (auth.role() = 'authenticated');
 create policy "skk_all_self" on skk for all using (
   exists (select 1 from penggalang p where p.id = skk.penggalang_id and p.user_id = auth.uid())
 );
 
--- Pembina: akses semua (berdasarkan role di profiles)
+-- Pembina bisa akses semua
 create policy "pembina_all_penggalang" on penggalang for all using (
   exists (select 1 from profiles where id = auth.uid() and role = 'pembina')
 );
