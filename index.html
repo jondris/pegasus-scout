@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="PEGASUS SCOUT - Sistem Informasi Pramuka Penggalang SMP" />
+  <title>PEGASUS SCOUT | Sistem Informasi Pramuka Penggalang SMP</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚜️</text></svg>" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-logo">
+        <i class="fas fa-feather-alt"></i>
+      </div>
+      <div class="brand-text">
+        <h1>PEGASUS SCOUT</h1>
+        <p>Sistem Informasi Pramuka Penggalang SMP</p>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <ul>
+        <li><a href="#" class="nav-link active" data-page="dashboard"><i class="fas fa-house"></i><span>🏠 Dashboard</span></a></li>
+        <li><a href="#" class="nav-link" data-page="penggalang"><i class="fas fa-user-group"></i><span>👤 Data Penggalang</span></a></li>
+        <li><a href="#" class="nav-link" data-page="regu"><i class="fas fa-flag"></i><span>⚜️ Data Regu</span></a></li>
+        <li><a href="#" class="nav-link" data-page="pembina"><i class="fas fa-chalkboard-user"></i><span>👨‍🏫 Pembina</span></a></li>
+        <li><a href="#" class="nav-link" data-page="kegiatan"><i class="fas fa-calendar-days"></i><span>📅 Kegiatan</span></a></li>
+        <li class="nav-divider"></li>
+        <li><a href="#" class="nav-link" data-page="absensi"><i class="fas fa-circle-check"></i><span>✅ Absensi</span></a></li>
+        <li><a href="#" class="nav-link" data-page="sku"><i class="fas fa-scroll"></i><span>📜 SKU</span></a></li>
+        <li><a href="#" class="nav-link" data-page="prestasi"><i class="fas fa-trophy"></i><span>🏆 Prestasi</span></a></li>
+        <li><a href="#" class="nav-link" data-page="dokumentasi"><i class="fas fa-camera"></i><span>📷 Dokumentasi</span></a></li>
+        <li><a href="#" class="nav-link" data-page="laporan"><i class="fas fa-chart-column"></i><span>📊 Laporan</span></a></li>
+        <li><a href="#" class="nav-link" data-page="pengaturan"><i class="fas fa-gear"></i><span>⚙️ Pengaturan</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+      <p><i class="fas fa-code-branch"></i> v1.0.0 · GitHub Pages</p>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main class="main">
+    <header class="topbar">
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div class="topbar-title">
+        <h2 id="pageTitle">Dashboard</h2>
+        <small id="pageSubtitle">Ringkasan aktivitas pramuka penggalang</small>
+      </div>
+      <div class="topbar-actions">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input type="text" placeholder="Cari..." />
+        </div>
+        <button class="icon-btn" title="Notifikasi"><i class="fas fa-bell"></i><span class="badge">3</span></button>
+        <div class="user-profile">
+          <i class="fas fa-circle-user"></i>
+          <div>
+            <strong>Kak Rina</strong>
+            <small>Pembina</small>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="content" id="content"></section>
+
+    <footer class="footer">
+      <p>© 2025 <strong>PEGASUS SCOUT</strong> · Sistem Informasi Pramuka Penggalang SMP · Dibuat dengan <i class="fas fa-heart" style="color:#e53935"></i> untuk Pramuka Indonesia</p>
+    </footer>
+  </main>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
