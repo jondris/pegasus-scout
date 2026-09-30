@@ -1,87 +1,143 @@
 /* =========================================================
-   PEGASUS SCOUT - Sistem Informasi Pramuka Penggalang SMP
+   PEGASUS SCOUT - App Utama
    ========================================================= */
+import { supabase, getProfile, getPenggalangByUser, logout } from './supabase.js';
 
-// ====== DATA DUMMY (bisa diganti API/LocalStorage nanti) ======
-const DATA = {
-  penggalang: [
-    { nis: '2024001', nama: 'Ahmad Fauzi',       regu: 'Elang',     tingkat: 'Ramu',   status: 'Aktif' },
-    { nis: '2024002', nama: 'Budi Santoso',      regu: 'Elang',     tingkat: 'Rakit',  status: 'Aktif' },
-    { nis: '2024003', nama: 'Citra Dewi',        regu: 'Rajawali',  tingkat: 'Terap',  status: 'Aktif' },
-    { nis: '2024004', nama: 'Dian Permata',      regu: 'Rajawali',  tingkat: 'Ramu',   status: 'Aktif' },
-    { nis: '2024005', nama: 'Eko Prasetyo',      regu: 'Merpati',   tingkat: 'Rakit',  status: 'Cuti'  },
-    { nis: '2024006', nama: 'Fitri Handayani',   regu: 'Merpati',   tingkat: 'Ramu',   status: 'Aktif' },
-    { nis: '2024007', nama: 'Galih Ramadhan',    regu: 'Garuda',    tingkat: 'Terap',  status: 'Aktif' },
-    { nis: '2024008', nama: 'Hana Salsabila',    regu: 'Garuda',    tingkat: 'Rakit',  status: 'Aktif' },
-  ],
-  regu: [
-    { nama: 'Elang',    ketua: 'Ahmad Fauzi',   anggota: 8, warna: '#2e7d32' },
-    { nama: 'Rajawali', ketua: 'Citra Dewi',    anggota: 8, warna: '#1565c0' },
-    { nama: 'Merpati',  ketua: 'Fitri Handayani', anggota: 7, warna: '#6a1b9a' },
-    { nama: 'Garuda',   ketua: 'Galih Ramadhan', anggota: 8, warna: '#c62828' },
-    { nama: 'Cendrawasih', ketua: 'Intan P.',   anggota: 6, warna: '#ef6c00' },
-    { nama: 'Kakatua',  ketua: 'Joko S.',       anggota: 7, warna: '#00695c' },
-  ],
-  pembina: [
-    { nama: 'Kak Rina Marlina',  jabatan: 'Pembina Utama',     kontak: '0812-3456-7890' },
-    { nama: 'Kak Dedi Kurniawan', jabatan: 'Pembina Putra',    kontak: '0813-2233-4455' },
-    { nama: 'Kak Sari Wulandari', jabatan: 'Pembina Putri',    kontak: '0814-5566-7788' },
-    { nama: 'Kak Andi Pratama',   jabatan: 'Pelatih PBB',      kontak: '0815-9988-7766' },
-  ],
-  kegiatan: [
-    { tanggal: '2025-01-12', nama: 'Latihan Rutin Mingguan',    lokasi: 'Lapangan Sekolah', status: 'Selesai' },
-    { tanggal: '2025-01-19', nama: 'Pioneering & Tali Temali',  lokasi: 'Halaman Belakang', status: 'Selesai' },
-    { tanggal: '2025-01-26', nama: 'Persami (Perkemahan Sabtu Minggu)', lokasi: 'Bumi Perkemahan Cibubur', status: 'Akan Datang' },
-    { tanggal: '2025-02-02', nama: 'Ujian SKU Ramu',            lokasi: 'Aula Sekolah', status: 'Akan Datang' },
-    { tanggal: '2025-02-09', nama: 'Bakti Sosial Lingkungan',   lokasi: 'Desa Sukamaju', status: 'Akan Datang' },
-  ],
-  absensi: [
-    { tanggal: '2025-01-12', kegiatan: 'Latihan Rutin',  hadir: 38, izin: 3, alpha: 1 },
-    { tanggal: '2025-01-19', kegiatan: 'Pioneering',      hadir: 35, izin: 5, alpha: 2 },
-    { tanggal: '2025-01-26', kegiatan: 'Persami',         hadir: 40, izin: 2, alpha: 0 },
-  ],
-  sku: [
-    { nama: 'Ahmad Fauzi',      tingkat: 'Ramu',  progres: 100, status: 'Lulus' },
-    { nama: 'Budi Santoso',     tingkat: 'Rakit', progres: 75,  status: 'Proses' },
-    { nama: 'Citra Dewi',       tingkat: 'Terap', progres: 60,  status: 'Proses' },
-    { nama: 'Dian Permata',     tingkat: 'Ramu',  progres: 90,  status: 'Proses' },
-    { nama: 'Galih Ramadhan',   tingkat: 'Terap', progres: 100, status: 'Lulus' },
-  ],
-  prestasi: [
-    { tahun: 2025, nama: 'Juara 1 Lomba Pionering',        tingkat: 'Kabupaten', peraih: 'Regu Elang' },
-    { tahun: 2025, nama: 'Juara 2 Lomba Semaphore',        tingkat: 'Kecamatan', peraih: 'Regu Rajawali' },
-    { tahun: 2024, nama: 'Juara 3 Lomba Tali Temali',      tingkat: 'Kabupaten', peraih: 'Regu Garuda' },
-    { tahun: 2024, nama: 'Regu Terbaik Persami',           tingkat: 'Sekolah',   peraih: 'Regu Merpati' },
-  ],
-  dokumentasi: [
-    { nama: 'Latihan Rutin Januari',  jumlah: 24, cover: '📸' },
-    { nama: 'Persami 2025',           jumlah: 56, cover: '🏕️' },
-    { nama: 'Bakti Sosial',           jumlah: 18, cover: '🌱' },
-    { nama: 'Lomba Tingkat Kabupaten', jumlah: 32, cover: '🏆' },
-  ]
-};
+let CURRENT_USER = null;
+let CURRENT_PROFILE = null;
+let CURRENT_PENGGALANG = null;
+let USER_ROLE = 'penggalang';
 
-// ====== KONFIGURASI HALAMAN ======
 const PAGES = {
-  dashboard:    { title: 'Dashboard',        subtitle: 'Ringkasan aktivitas pramuka penggalang' },
-  penggalang:   { title: 'Data Penggalang',  subtitle: 'Daftar anggota penggalang aktif' },
-  regu:         { title: 'Data Regu',        subtitle: 'Kelola regu penggalang' },
-  pembina:      { title: 'Pembina',          subtitle: 'Data pembina & pelatih' },
-  kegiatan:     { title: 'Kegiatan',         subtitle: 'Jadwal kegiatan kepramukaan' },
-  absensi:      { title: 'Absensi',          subtitle: 'Rekap kehadiran anggota' },
-  sku:          { title: 'SKU',              subtitle: 'Syarat Kecakapan Umum' },
-  prestasi:     { title: 'Prestasi',         subtitle: 'Pencapaian & penghargaan' },
-  dokumentasi:  { title: 'Dokumentasi',      subtitle: 'Galeri foto kegiatan' },
-  laporan:      { title: 'Laporan',          subtitle: 'Cetak & ekspor laporan' },
-  pengaturan:   { title: 'Pengaturan',       subtitle: 'Konfigurasi sistem' },
+  dashboard:  { title: 'Dashboard',       subtitle: 'Ringkasan aktivitas pramuka penggalang' },
+  penggalang: { title: 'Data Penggalang', subtitle: 'Daftar anggota penggalang' },
+  regu:       { title: 'Data Regu',       subtitle: 'Kelola regu penggalang' },
+  pembina:    { title: 'Pembina',         subtitle: 'Data pembina & pelatih' },
+  kegiatan:   { title: 'Kegiatan',        subtitle: 'Jadwal kegiatan kepramukaan' },
+  absensi:    { title: 'Absensi',         subtitle: 'Rekap kehadiran anggota' },
+  sku:        { title: 'SKU',             subtitle: 'Syarat Kecakapan Umum' },
+  skk:        { title: 'SKK',             subtitle: 'Syarat Kecakapan Khusus' },
+  prestasi:   { title: 'Prestasi',        subtitle: 'Pencapaian & penghargaan' },
+  dokumentasi:{ title: 'Dokumentasi',     subtitle: 'Galeri foto kegiatan' },
+  laporan:    { title: 'Laporan',         subtitle: 'Cetak & ekspor laporan' },
+  pengaturan: { title: 'Pengaturan',      subtitle: 'Konfigurasi sistem' },
 };
 
-// ====== RENDER ======
 const contentEl = document.getElementById('content');
 const pageTitleEl = document.getElementById('pageTitle');
 const pageSubtitleEl = document.getElementById('pageSubtitle');
 
-function render(page) {
+// ===== INIT =====
+(async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
+  CURRENT_USER = session.user;
+  await loadUserData();
+  applyRoleVisibility();
+  bindUserMenu();
+  bindNav();
+  bindSidebar();
+  const hash = location.hash.replace('#','') || 'dashboard';
+  navigate(PAGES[hash] ? hash : 'dashboard');
+})();
+
+// ===== LOAD DATA =====
+async function loadUserData() {
+  let profile = await getProfile(CURRENT_USER.id);
+
+  if (!profile) {
+    const meta = CURRENT_USER.user_metadata || {};
+    const roleChoice = localStorage.getItem('pegasus_role_choice') || 'penggalang';
+    const { data: newProfile } = await supabase.from('profiles').insert({
+      id: CURRENT_USER.id,
+      email: CURRENT_USER.email,
+      full_name: meta.full_name || meta.name || 'Pengguna',
+      avatar_url: meta.avatar_url || null,
+      role: roleChoice
+    }).select().single();
+    profile = newProfile;
+  }
+
+  CURRENT_PROFILE = profile;
+  USER_ROLE = profile?.role || 'penggalang';
+
+  const roleChoice = localStorage.getItem('pegasus_role_choice');
+  if (roleChoice === 'pembina' && USER_ROLE === 'penggalang') {
+    await supabase.from('profiles').update({ role: 'pembina' }).eq('id', CURRENT_USER.id);
+    USER_ROLE = 'pembina';
+    CURRENT_PROFILE.role = 'pembina';
+  }
+  localStorage.removeItem('pegasus_role_choice');
+
+  if (USER_ROLE === 'penggalang') {
+    CURRENT_PENGGALANG = await getPenggalangByUser(CURRENT_USER.id);
+  }
+
+  updateTopbarUser();
+}
+
+// ===== TOPBAR =====
+function updateTopbarUser() {
+  const name = CURRENT_PROFILE.full_name || 'Pengguna';
+  const avatar = CURRENT_PROFILE.avatar_url;
+  const roleLabel = USER_ROLE === 'pembina' ? 'Pembina' : 'Penggalang';
+
+  document.getElementById('userName').textContent = name;
+  document.getElementById('userRole').textContent = roleLabel;
+
+  const av = document.getElementById('userAvatar');
+  const avFallback = document.getElementById('userAvatarFallback');
+  const udAv = document.getElementById('udAvatar');
+  const udAvFallback = document.getElementById('udAvatarFallback');
+
+  if (avatar) {
+    [av, udAv].forEach(el => { el.src = avatar; el.style.display = 'block'; });
+    [avFallback, udAvFallback].forEach(el => el.style.display = 'none');
+  } else {
+    [av, udAv].forEach(el => el.style.display = 'none');
+    [avFallback, udAvFallback].forEach(el => el.style.display = 'block');
+  }
+  document.getElementById('udName').textContent = name;
+}
+
+// ===== ROLE VISIBILITY =====
+function applyRoleVisibility() {
+  document.querySelectorAll('[data-pembina-only]').forEach(el => {
+    el.style.display = USER_ROLE === 'pembina' ? '' : 'none';
+  });
+}
+
+// ===== USER MENU =====
+function bindUserMenu() {
+  const profileBtn = document.getElementById('userProfile');
+  const dropdown = document.getElementById('userDropdown');
+
+  profileBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dropdown.classList.toggle('show');
+  });
+  document.addEventListener('click', () => dropdown.classList.remove('show'));
+
+  document.getElementById('btnLogout').addEventListener('click', async () => {
+    if (confirm('Yakin ingin keluar?')) await logout();
+  });
+  document.getElementById('btnProfile').addEventListener('click', () => navigate('penggalang'));
+  document.getElementById('btnSettings').addEventListener('click', () => navigate('pengaturan'));
+}
+
+// ===== NAV =====
+function bindNav() {
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      navigate(link.dataset.page);
+    });
+  });
+}
+
+function navigate(page) {
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.toggle('active', l.dataset.page === page));
+  location.hash = page;
   const info = PAGES[page] || PAGES.dashboard;
   pageTitleEl.textContent = info.title;
   pageSubtitleEl.textContent = info.subtitle;
@@ -94,429 +150,29 @@ function render(page) {
     kegiatan: renderKegiatan,
     absensi: renderAbsensi,
     sku: renderSKU,
+    skk: renderSKK,
     prestasi: renderPrestasi,
     dokumentasi: renderDokumentasi,
     laporan: renderLaporan,
     pengaturan: renderPengaturan,
   };
-
-  contentEl.innerHTML = (renderers[page] || renderDashboard)();
+  contentEl.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Memuat...</div>';
+  (renderers[page] || renderDashboard)();
+  closeSidebar();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+window.navigate = navigate;
 
-// ====== HALAMAN: DASHBOARD ======
-function renderDashboard() {
-  const totalAnggota = DATA.penggalang.length;
-  const totalRegu = DATA.regu.length;
-  const totalKegiatan = DATA.kegiatan.length;
-  const totalPrestasi = DATA.prestasi.length;
-
-  return `
-    <div class="welcome-card">
-      <div>
-        <h1>Salam Pramuka! ⚜️</h1>
-        <p>Selamat datang di <strong>PEGASUS SCOUT</strong> — Sistem Informasi Pramuka Penggalang SMP. Kelola data anggota, regu, kegiatan, dan administrasi kepramukaan dalam satu platform.</p>
-      </div>
-      <div class="welcome-icon"><i class="fas fa-feather-alt"></i></div>
-    </div>
-
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-icon green"><i class="fas fa-user-group"></i></div>
-        <div class="stat-info"><h3>${totalAnggota}</h3><p>Penggalang</p></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon blue"><i class="fas fa-flag"></i></div>
-        <div class="stat-info"><h3>${totalRegu}</h3><p>Regu</p></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon amber"><i class="fas fa-calendar-days"></i></div>
-        <div class="stat-info"><h3>${totalKegiatan}</h3><p>Kegiatan</p></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon purple"><i class="fas fa-trophy"></i></div>
-        <div class="stat-info"><h3>${totalPrestasi}</h3><p>Prestasi</p></div>
-      </div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-header">
-        <h2><i class="fas fa-clock-rotate-left"></i> Kegiatan Terbaru</h2>
-        <button class="btn secondary" onclick="navigate('kegiatan')">Lihat Semua <i class="fas fa-arrow-right"></i></button>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr><th>Tanggal</th><th>Nama Kegiatan</th><th>Lokasi</th><th>Status</th></tr>
-          </thead>
-          <tbody>
-            ${DATA.kegiatan.slice(0, 4).map(k => `
-              <tr>
-                <td>${formatTanggal(k.tanggal)}</td>
-                <td><strong>${k.nama}</strong></td>
-                <td>${k.lokasi}</td>
-                <td>${statusPill(k.status)}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-header">
-        <h2><i class="fas fa-users"></i> Anggota Terbaru</h2>
-        <button class="btn secondary" onclick="navigate('penggalang')">Kelola <i class="fas fa-arrow-right"></i></button>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr><th>NIS</th><th>Nama</th><th>Regu</th><th>Tingkat</th><th>Status</th></tr>
-          </thead>
-          <tbody>
-            ${DATA.penggalang.slice(0, 5).map(p => `
-              <tr>
-                <td>${p.nis}</td>
-                <td><strong>${p.nama}</strong></td>
-                <td>${p.regu}</td>
-                <td>${p.tingkat}</td>
-                <td>${p.status === 'Aktif' ? '<span class="pill success">Aktif</span>' : '<span class="pill warning">Cuti</span>'}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  `;
-}
-
-// ====== HALAMAN: PENGGALANG ======
-function renderPenggalang() {
-  return `
-    <div class="panel">
-      <div class="panel-header">
-        <h2><i class="fas fa-user-group"></i> Daftar Penggalang</h2>
-        <button class="btn"><i class="fas fa-plus"></i> Tambah Anggota</button>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr><th>NIS</th><th>Nama</th><th>Regu</th><th>Tingkat SKU</th><th>Status</th><th>Aksi</th></tr>
-          </thead>
-          <tbody>
-            ${DATA.penggalang.map(p => `
-              <tr>
-                <td>${p.nis}</td>
-                <td><strong>${p.nama}</strong></td>
-                <td>${p.regu}</td>
-                <td><span class="pill info">${p.tingkat}</span></td>
-                <td>${p.status === 'Aktif' ? '<span class="pill success">Aktif</span>' : '<span class="pill warning">Cuti</span>'}</td>
-                <td>
-                  <button class="btn secondary" style="padding:5px 10px;font-size:.75rem"><i class="fas fa-pen"></i></button>
-                  <button class="btn" style="padding:5px 10px;font-size:.75rem;background:#ef4444"><i class="fas fa-trash"></i></button>
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  `;
-}
-
-// ====== HALAMAN: REGU ======
-function renderRegu() {
-  return `
-    <div class="panel">
-      <div class="panel-header">
-        <h2><i class="fas fa-flag"></i> Data Regu</h2>
-        <button class="btn"><i class="fas fa-plus"></i> Tambah Regu</button>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr><th>Nama Regu</th><th>Ketua</th><th>Jumlah Anggota</th><th>Warna</th></tr>
-          </thead>
-          <tbody>
-            ${DATA.regu.map(r => `
-              <tr>
-                <td><strong>${r.nama}</strong></td>
-                <td>${r.ketua}</td>
-                <td>${r.anggota} orang</td>
-                <td><span class="pill" style="background:${r.warna};color:#fff">${r.nama}</span></td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  `;
-}
-
-// ====== HALAMAN: PEMBINA ======
-function renderPembina() {
-  return `
-    <div class="panel">
-      <div class="panel-header">
-        <h2><i class="fas fa-chalkboard-user"></i> Data Pembina</h2>
-        <button class="btn"><i class="fas fa-plus"></i> Tambah Pembina</button>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr><th>Nama</th><th>Jabatan</th><th>Kontak</th></tr>
-          </thead>
-          <tbody>
-            ${DATA.pembina.map(p => `
-              <tr>
-                <td><strong>${p.nama}</strong></td>
-                <td>${p.jabatan}</td>
-                <td>${p.kontak}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  `;
-}
-
-// ====== HALAMAN: KEGIATAN ======
-function renderKegiatan() {
-  return `
-    <div class="panel">
-      <div class="panel-header">
-        <h2><i class="fas fa-calendar-days"></i> Jadwal Kegiatan</h2>
-        <button class="btn"><i class="fas fa-plus"></i> Tambah Kegiatan</button>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr><th>Tanggal</th><th>Nama Kegiatan</th><th>Lokasi</th><th>Status</th></tr>
-          </thead>
-          <tbody>
-            ${DATA.kegiatan.map(k => `
-              <tr>
-                <td>${formatTanggal(k.tanggal)}</td>
-                <td><strong>${k.nama}</strong></td>
-                <td>${k.lokasi}</td>
-                <td>${statusPill(k.status)}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  `;
-}
-
-// ====== HALAMAN: ABSENSI ======
-function renderAbsensi() {
-  return `
-    <div class="panel">
-      <div class="panel-header">
-        <h2><i class="fas fa-circle-check"></i> Rekap Absensi</h2>
-        <button class="btn"><i class="fas fa-plus"></i> Input Absensi</button>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr><th>Tanggal</th><th>Kegiatan</th><th>Hadir</th><th>Izin</th><th>Alpha</th><th>Persentase</th></tr>
-          </thead>
-          <tbody>
-            ${DATA.absensi.map(a => {
-              const total = a.hadir + a.izin + a.alpha;
-              const pct = Math.round((a.hadir / total) * 100);
-              return `
-                <tr>
-                  <td>${formatTanggal(a.tanggal)}</td>
-                  <td><strong>${a.kegiatan}</strong></td>
-                  <td><span class="pill success">${a.hadir}</span></td>
-                  <td><span class="pill warning">${a.izin}</span></td>
-                  <td><span class="pill danger">${a.alpha}</span></td>
-                  <td><strong>${pct}%</strong></td>
-                </tr>
-              `;
-            }).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  `;
-}
-
-// ====== HALAMAN: SKU ======
-function renderSKU() {
-  return `
-    <div class="panel">
-      <div class="panel-header">
-        <h2><i class="fas fa-scroll"></i> Progres SKU Anggota</h2>
-        <button class="btn"><i class="fas fa-plus"></i> Update SKU</button>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr><th>Nama</th><th>Tingkat</th><th>Progres</th><th>Status</th></tr>
-          </thead>
-          <tbody>
-            ${DATA.sku.map(s => `
-              <tr>
-                <td><strong>${s.nama}</strong></td>
-                <td><span class="pill info">${s.tingkat}</span></td>
-                <td>${s.progres}%</td>
-                <td>${s.status === 'Lulus' ? '<span class="pill success">Lulus</span>' : '<span class="pill warning">Proses</span>'}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  `;
-}
-
-// ====== HALAMAN: PRESTASI ======
-function renderPrestasi() {
-  return `
-    <div class="panel">
-      <div class="panel-header">
-        <h2><i class="fas fa-trophy"></i> Daftar Prestasi</h2>
-        <button class="btn"><i class="fas fa-plus"></i> Tambah Prestasi</button>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr><th>Tahun</th><th>Nama Prestasi</th><th>Tingkat</th><th>Peraih</th></tr>
-          </thead>
-          <tbody>
-            ${DATA.prestasi.map(p => `
-              <tr>
-                <td>${p.tahun}</td>
-                <td><strong>${p.nama}</strong></td>
-                <td><span class="pill info">${p.tingkat}</span></td>
-                <td>${p.peraih}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  `;
-}
-
-// ====== HALAMAN: DOKUMENTASI ======
-function renderDokumentasi() {
-  return `
-    <div class="panel">
-      <div class="panel-header">
-        <h2><i class="fas fa-camera"></i> Galeri Dokumentasi</h2>
-        <button class="btn"><i class="fas fa-upload"></i> Upload Foto</button>
-      </div>
-      <div class="stats-grid">
-        ${DATA.dokumentasi.map(d => `
-          <div class="stat-card">
-            <div class="stat-icon teal" style="font-size:1.8rem">${d.cover}</div>
-            <div class="stat-info">
-              <h3>${d.jumlah}</h3>
-              <p>${d.nama}</p>
-            </div>
-          </div>
-        `).join('')}
-      </div>
-    </div>
-  `;
-}
-
-// ====== HALAMAN: LAPORAN ======
-function renderLaporan() {
-  return `
-    <div class="panel">
-      <div class="panel-header">
-        <h2><i class="fas fa-chart-column"></i> Laporan & Ekspor Data</h2>
-      </div>
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-icon green"><i class="fas fa-file-pdf"></i></div>
-          <div class="stat-info"><h3>PDF</h3><p>Laporan Bulanan</p></div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon blue"><i class="fas fa-file-excel"></i></div>
-          <div class="stat-info"><h3>Excel</h3><p>Data Anggota</p></div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon amber"><i class="fas fa-file-csv"></i></div>
-          <div class="stat-info"><h3>CSV</h3><p>Rekap Absensi</p></div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon purple"><i class="fas fa-print"></i></div>
-          <div class="stat-info"><h3>Print</h3><p>SKU & Piagam</p></div>
-        </div>
-      </div>
-    </div>
-    <div class="placeholder">
-      <i class="fas fa-chart-line"></i>
-      <h3>Modul Laporan</h3>
-      <p>Fitur ekspor laporan lengkap akan tersedia di versi berikutnya.</p>
-    </div>
-  `;
-}
-
-// ====== HALAMAN: PENGATURAN ======
-function renderPengaturan() {
-  return `
-    <div class="panel">
-      <div class="panel-header">
-        <h2><i class="fas fa-gear"></i> Pengaturan Sistem</h2>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <tbody>
-            <tr><td><strong>Nama Gugus Depan</strong></td><td>PEGASUS SCOUT - SMP Negeri 1</td></tr>
-            <tr><td><strong>Nomor Gudep</strong></td><td>01.234 / 01.235</td></tr>
-            <tr><td><strong>Tahun Aktif</strong></td><td>2025 / 2026</td></tr>
-            <tr><td><strong>Pembina Utama</strong></td><td>Kak Rina Marlina</td></tr>
-            <tr><td><strong>Versi Aplikasi</strong></td><td>v1.0.0</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-    <div class="placeholder">
-      <i class="fas fa-sliders"></i>
-      <h3>Pengaturan Lanjutan</h3>
-      <p>Konfigurasi tema, backup data, dan manajemen pengguna akan tersedia di sini.</p>
-    </div>
-  `;
-}
-
-// ====== HELPER ======
-function formatTanggal(tgl) {
-  const bulan = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
-  const d = new Date(tgl);
-  return `${d.getDate()} ${bulan[d.getMonth()]} ${d.getFullYear()}`;
-}
-
-function statusPill(status) {
-  const map = {
-    'Selesai': 'success',
-    'Akan Datang': 'info',
-    'Dibatalkan': 'danger',
-  };
-  return `<span class="pill ${map[status] || 'info'}">${status}</span>`;
-}
-
-// ====== NAVIGASI ======
-function navigate(page) {
-  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-  const activeLink = document.querySelector(`.nav-link[data-page="${page}"]`);
-  if (activeLink) activeLink.classList.add('active');
-  render(page);
-  closeSidebar();
-}
-
-// ====== SIDEBAR MOBILE ======
+// ===== SIDEBAR MOBILE =====
 const sidebar = document.getElementById('sidebar');
 const menuToggle = document.getElementById('menuToggle');
 let overlay = null;
 
+function bindSidebar() {
+  menuToggle.addEventListener('click', () => {
+    sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+  });
+}
 function openSidebar() {
   sidebar.classList.add('open');
   if (!overlay) {
@@ -527,35 +183,576 @@ function openSidebar() {
   }
   overlay.classList.add('active');
 }
-
 function closeSidebar() {
   sidebar.classList.remove('open');
   if (overlay) overlay.classList.remove('active');
 }
 
-menuToggle.addEventListener('click', () => {
-  sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
-});
+// =========================================================
+// MODAL HELPER
+// =========================================================
+function openModal(html) {
+  const ov = document.getElementById('modalOverlay');
+  ov.innerHTML = `<div class="modal">${html}</div>`;
+  ov.classList.add('show');
+  ov.addEventListener('click', (e) => { if (e.target === ov) closeModal(); });
+}
+function closeModal() {
+  const ov = document.getElementById('modalOverlay');
+  ov.classList.remove('show');
+  ov.innerHTML = '';
+}
+window.closeModal = closeModal;
 
-// ====== EVENT LISTENER NAV ======
-document.querySelectorAll('.nav-link').forEach(link => {
-  link.addEventListener('click', (e) => {
-    e.preventDefault();
-    const page = link.dataset.page;
-    navigate(page);
-    history.replaceState(null, '', `#${page}`);
+// =========================================================
+// DASHBOARD
+// =========================================================
+async function renderDashboard() {
+  const { count: totalAnggota } = await supabase.from('penggalang').select('*', { count: 'exact', head: true });
+  const { count: totalRegu } = await supabase.from('penggalang').select('regu', { count: 'exact', head: true });
+
+  const welcomeName = CURRENT_PROFILE.full_name?.split(' ')[0] || 'Kak';
+
+  contentEl.innerHTML = `
+    <div class="welcome-card">
+      <div>
+        <h1>Halo, ${welcomeName}! ⚜️</h1>
+        <p>Selamat datang di <strong>PEGASUS SCOUT</strong>. Anda masuk sebagai <strong>${USER_ROLE === 'pembina' ? 'Pembina' : 'Penggalang'}</strong>.</p>
+      </div>
+      <div class="welcome-icon"><i class="fas fa-feather-alt"></i></div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon green"><i class="fas fa-user-group"></i></div>
+        <div class="stat-info"><h3>${totalAnggota || 0}</h3><p>Penggalang</p></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon blue"><i class="fas fa-flag"></i></div>
+        <div class="stat-info"><h3>${totalRegu || 0}</h3><p>Anggota Regu</p></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon amber"><i class="fas fa-calendar-days"></i></div>
+        <div class="stat-info"><h3>0</h3><p>Kegiatan</p></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon purple"><i class="fas fa-trophy"></i></div>
+        <div class="stat-info"><h3>0</h3><p>Prestasi</p></div>
+      </div>
+    </div>
+
+    ${USER_ROLE === 'penggalang' && !CURRENT_PENGGALANG ? `
+      <div class="panel">
+        <div class="placeholder">
+          <i class="fas fa-user-plus"></i>
+          <h3>Anda belum terdaftar sebagai anggota</h3>
+          <p>Silakan lengkapi biodata Anda untuk bergabung dengan regu.</p>
+          <button class="btn" style="margin-top:16px" onclick="openBiodataForm()"><i class="fas fa-plus"></i> Daftar Sekarang</button>
+        </div>
+      </div>
+    ` : ''}
+  `;
+  window.openBiodataForm = openBiodataForm;
+}
+
+// =========================================================
+// PENGGALANG (biodata)
+// =========================================================
+async function renderPenggalang() {
+  const { data: list } = await supabase.from('penggalang').select('*').order('created_at', { ascending: false });
+
+  if (USER_ROLE === 'penggalang') {
+    // Penggalang: lihat & edit biodata sendiri
+    const p = CURRENT_PENGGALANG;
+    contentEl.innerHTML = `
+      <div class="panel">
+        <div class="panel-header">
+          <h2><i class="fas fa-id-card"></i> Biodata Saya</h2>
+          ${p ? `<button class="btn" onclick="openBiodataForm()"><i class="fas fa-pen"></i> Edit Biodata</button>` : ''}
+        </div>
+        ${p ? `
+          <div class="table-wrap">
+            <table>
+              <tbody>
+                <tr><td><strong>Nama</strong></td><td>${p.nama}</td></tr>
+                <tr><td><strong>Regu</strong></td><td>${p.regu || '-'}</td></tr>
+                <tr><td><strong>Jabatan Regu</strong></td><td>${p.jabatan_regu || '-'}</td></tr>
+                <tr><td><strong>Tingkat SKU</strong></td><td>${p.tingkat_sku || '-'}</td></tr>
+                <tr><td><strong>Jenis SKK</strong></td><td>${p.jenis_skk || '-'}</td></tr>
+                <tr><td><strong>Status</strong></td><td><span class="pill ${p.status === 'Aktif' ? 'success' : 'warning'}">${p.status}</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        ` : `
+          <div class="placeholder">
+            <i class="fas fa-user-plus"></i>
+            <h3>Belum ada biodata</h3>
+            <p>Lengkapi biodata Anda untuk bergabung dengan regu.</p>
+            <button class="btn" style="margin-top:16px" onclick="openBiodataForm()"><i class="fas fa-plus"></i> Isi Biodata</button>
+          </div>
+        `}
+      </div>
+    `;
+    window.openBiodataForm = openBiodataForm;
+    return;
+  }
+
+  // Pembina: lihat semua anggota + aksi
+  contentEl.innerHTML = `
+    <div class="panel">
+      <div class="panel-header">
+        <h2><i class="fas fa-user-group"></i> Semua Anggota Penggalang</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Nama</th><th>Regu</th><th>Jabatan</th><th>Tingkat SKU</th><th>SKK</th><th>Status</th><th>Aksi</th></tr></thead>
+          <tbody>
+            ${(list || []).map(p => `
+              <tr>
+                <td><strong>${p.nama}</strong></td>
+                <td>${p.regu || '-'}</td>
+                <td>${p.jabatan_regu || '-'}</td>
+                <td>${p.tingkat_sku ? `<span class="pill info">${p.tingkat_sku}</span>` : '-'}</td>
+                <td>${p.jenis_skk || '-'}</td>
+                <td><span class="pill ${p.status === 'Aktif' ? 'success' : 'warning'}">${p.status}</span></td>
+                <td>
+                  <button class="btn danger" style="padding:5px 10px;font-size:.75rem" onclick="hapusPenggalang('${p.id}')"><i class="fas fa-trash"></i></button>
+                </td>
+              </tr>
+            `).join('') || '<tr><td colspan="7" style="text-align:center;color:#9ca3af">Belum ada data</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  window.hapusPenggalang = async (id) => {
+    if (!confirm('Hapus anggota ini?')) return;
+    await supabase.from('penggalang').delete().eq('id', id);
+    renderPenggalang();
+  };
+}
+
+// ===== FORM BIODATA =====
+function openBiodataForm() {
+  const p = CURRENT_PENGGALANG || {};
+  const reguList = ['Elang','Rajawali','Merpati','Garuda','Cendrawasih','Kakatua'];
+  const jabatanList = ['Ketua','Wakil','Sekretaris','Bendahara','Anggota'];
+  const skuList = ['Ramu','Rakit','Terap'];
+  const skkList = ['SKK Pertolongan Pertama','SKK Pengamanan','SKK Kesehatan','SKK Juru Masak','SKK Berkemah','SKK Navigasi','SKK Komunikasi','SKK Pionering'];
+
+  openModal(`
+    <h3><i class="fas fa-id-card"></i> ${p.id ? 'Edit' : 'Isi'} Biodata Penggalang</h3>
+    <div class="form-group">
+      <label>Nama Lengkap</label>
+      <input id="fNama" type="text" value="${p.nama || CURRENT_PROFILE.full_name || ''}" />
+    </div>
+    <div class="form-group">
+      <label>Regu</label>
+      <select id="fRegu">
+        <option value="">-- Pilih Regu --</option>
+        ${reguList.map(r => `<option value="${r}" ${p.regu === r ? 'selected' : ''}>${r}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Jabatan dalam Regu</label>
+      <select id="fJabatan">
+        <option value="">-- Pilih Jabatan --</option>
+        ${jabatanList.map(j => `<option value="${j}" ${p.jabatan_regu === j ? 'selected' : ''}>${j}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Tingkat SKU</label>
+      <select id="fSku">
+        <option value="">-- Pilih Tingkat --</option>
+        ${skuList.map(s => `<option value="${s}" ${p.tingkat_sku === s ? 'selected' : ''}>${s}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Jenis SKK</label>
+      <select id="fSkk">
+        <option value="">-- Pilih SKK --</option>
+        ${skkList.map(s => `<option value="${s}" ${p.jenis_skk === s ? 'selected' : ''}>${s}</option>`).join('')}
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="closeModal()">Batal</button>
+      <button class="btn" onclick="simpanBiodata()"><i class="fas fa-save"></i> Simpan</button>
+    </div>
+  `);
+
+  window.simpanBiodata = async () => {
+    const payload = {
+      user_id: CURRENT_USER.id,
+      nama: document.getElementById('fNama').value.trim(),
+      regu: document.getElementById('fRegu').value || null,
+      jabatan_regu: document.getElementById('fJabatan').value || null,
+      tingkat_sku: document.getElementById('fSku').value || null,
+      jenis_skk: document.getElementById('fSkk').value || null,
+      status: 'Aktif',
+      updated_at: new Date().toISOString()
+    };
+    if (!payload.nama) { alert('Nama wajib diisi'); return; }
+
+    let res;
+    if (CURRENT_PENGGALANG?.id) {
+      res = await supabase.from('penggalang').update(payload).eq('id', CURRENT_PENGGALANG.id).select().single();
+    } else {
+      res = await supabase.from('penggalang').insert(payload).select().single();
+    }
+    if (res.error) { alert('Gagal simpan: ' + res.error.message); return; }
+
+    CURRENT_PENGGALANG = res.data;
+    closeModal();
+    navigate('penggalang');
+  };
+}
+window.openBiodataForm = openBiodataForm;
+
+// =========================================================
+// REGU
+// =========================================================
+async function renderRegu() {
+  const { data } = await supabase.from('penggalang').select('regu, jabatan_regu, nama');
+  const grouped = {};
+  (data || []).forEach(p => {
+    if (!p.regu) return;
+    if (!grouped[p.regu]) grouped[p.regu] = [];
+    grouped[p.regu].push(p);
   });
-});
 
-// ====== INIT ======
-window.addEventListener('DOMContentLoaded', () => {
-  const hash = window.location.hash.replace('#', '') || 'dashboard';
-  const page = PAGES[hash] ? hash : 'dashboard';
-  document.querySelectorAll('.nav-link').forEach(l => {
-    l.classList.toggle('active', l.dataset.page === page);
-  });
-  render(page);
-});
+  contentEl.innerHTML = `
+    <div class="panel">
+      <div class="panel-header"><h2><i class="fas fa-flag"></i> Data Regu</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Regu</th><th>Jumlah Anggota</th><th>Struktur</th></tr></thead>
+          <tbody>
+            ${Object.keys(grouped).length ? Object.entries(grouped).map(([regu, anggota]) => `
+              <tr>
+                <td><strong>${regu}</strong></td>
+                <td>${anggota.length} orang</td>
+                <td>${anggota.map(a => `<span class="pill info" style="margin:2px">${a.jabatan_regu || 'Anggota'}: ${a.nama}</span>`).join(' ')}</td>
+              </tr>
+            `).join('') : '<tr><td colspan="3" style="text-align:center;color:#9ca3af">Belum ada regu terdaftar</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
 
-// Expose navigate ke global untuk tombol di konten
-window.navigate = navigate;
+// =========================================================
+// ABSENSI
+// =========================================================
+async function renderAbsensi() {
+  if (USER_ROLE === 'penggalang') {
+    if (!CURRENT_PENGGALANG) {
+      contentEl.innerHTML = `<div class="panel"><div class="placeholder"><i class="fas fa-exclamation-circle"></i><h3>Isi biodata dulu</h3><p>Anda belum terdaftar sebagai anggota.</p></div></div>`;
+      return;
+    }
+    const { data } = await supabase.from('absensi').select('*').eq('penggalang_id', CURRENT_PENGGALANG.id).order('tanggal', { ascending: false });
+    contentEl.innerHTML = `
+      <div class="panel">
+        <div class="panel-header">
+          <h2><i class="fas fa-circle-check"></i> Absensi Saya</h2>
+          <button class="btn" onclick="openAbsensiForm()"><i class="fas fa-plus"></i> Tambah Absensi</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Tanggal</th><th>Kegiatan</th><th>Status</th><th>Keterangan</th></tr></thead>
+            <tbody>
+              ${(data || []).map(a => `
+                <tr>
+                  <td>${a.tanggal}</td>
+                  <td>${a.kegiatan || '-'}</td>
+                  <td><span class="pill ${a.status === 'Hadir' ? 'success' : a.status === 'Alpha' ? 'danger' : 'warning'}">${a.status}</span></td>
+                  <td>${a.keterangan || '-'}</td>
+                </tr>
+              `).join('') || '<tr><td colspan="4" style="text-align:center;color:#9ca3af">Belum ada absensi</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+    window.openAbsensiForm = () => {
+      openModal(`
+        <h3><i class="fas fa-circle-check"></i> Tambah Absensi</h3>
+        <div class="form-group"><label>Tanggal</label><input type="date" id="aTanggal" value="${new Date().toISOString().slice(0,10)}" /></div>
+        <div class="form-group"><label>Kegiatan</label><input type="text" id="aKegiatan" placeholder="Latihan Rutin" /></div>
+        <div class="form-group"><label>Status</label>
+          <select id="aStatus">
+            <option>Hadir</option><option>Izin</option><option>Sakit</option><option>Alpha</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Keterangan</label><textarea id="aKet" rows="2"></textarea></div>
+        <div class="modal-actions">
+          <button class="btn secondary" onclick="closeModal()">Batal</button>
+          <button class="btn" onclick="simpanAbsensi()"><i class="fas fa-save"></i> Simpan</button>
+        </div>
+      `);
+      window.simpanAbsensi = async () => {
+        const payload = {
+          penggalang_id: CURRENT_PENGGALANG.id,
+          tanggal: document.getElementById('aTanggal').value,
+          kegiatan: document.getElementById('aKegiatan').value,
+          status: document.getElementById('aStatus').value,
+          keterangan: document.getElementById('aKet').value
+        };
+        const { error } = await supabase.from('absensi').insert(payload);
+        if (error) { alert(error.message); return; }
+        closeModal(); renderAbsensi();
+      };
+    };
+    return;
+  }
+
+  // Pembina: lihat semua absensi
+  const { data } = await supabase.from('absensi').select('*, penggalang(nama, regu)').order('tanggal', { ascending: false });
+  contentEl.innerHTML = `
+    <div class="panel">
+      <div class="panel-header"><h2><i class="fas fa-circle-check"></i> Semua Absensi</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tanggal</th><th>Nama</th><th>Regu</th><th>Kegiatan</th><th>Status</th></tr></thead>
+          <tbody>
+            ${(data || []).map(a => `
+              <tr>
+                <td>${a.tanggal}</td>
+                <td>${a.penggalang?.nama || '-'}</td>
+                <td>${a.penggalang?.regu || '-'}</td>
+                <td>${a.kegiatan || '-'}</td>
+                <td><span class="pill ${a.status === 'Hadir' ? 'success' : a.status === 'Alpha' ? 'danger' : 'warning'}">${a.status}</span></td>
+              </tr>
+            `).join('') || '<tr><td colspan="5" style="text-align:center;color:#9ca3af">Belum ada data</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+// =========================================================
+// SKU
+// =========================================================
+async function renderSKU() {
+  if (USER_ROLE === 'penggalang') {
+    if (!CURRENT_PENGGALANG) {
+      contentEl.innerHTML = `<div class="panel"><div class="placeholder"><i class="fas fa-exclamation-circle"></i><h3>Isi biodata dulu</h3></div></div>`;
+      return;
+    }
+    const { data } = await supabase.from('sku').select('*').eq('penggalang_id', CURRENT_PENGGALANG.id).maybeSingle();
+    const s = data || { ramu:false, rakit:false, terap:false };
+    contentEl.innerHTML = `
+      <div class="panel">
+        <div class="panel-header">
+          <h2><i class="fas fa-scroll"></i> Progres SKU Saya</h2>
+          <button class="btn" onclick="openSkuForm()"><i class="fas fa-pen"></i> Update SKU</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon ${s.ramu ? 'green' : 'amber'}"><i class="fas fa-${s.ramu ? 'check' : 'clock'}"></i></div>
+            <div class="stat-info"><h3>${s.ramu ? '✓' : '—'}</h3><p>SKU Ramu</p></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon ${s.rakit ? 'green' : 'amber'}"><i class="fas fa-${s.rakit ? 'check' : 'clock'}"></i></div>
+            <div class="stat-info"><h3>${s.rakit ? '✓' : '—'}</h3><p>SKU Rakit</p></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon ${s.terap ? 'green' : 'amber'}"><i class="fas fa-${s.terap ? 'check' : 'clock'}"></i></div>
+            <div class="stat-info"><h3>${s.terap ? '✓' : '—'}</h3><p>SKU Terap</p></div>
+          </div>
+        </div>
+      </div>
+    `;
+    window.openSkuForm = () => {
+      openModal(`
+        <h3><i class="fas fa-scroll"></i> Update SKU</h3>
+        <div class="form-group"><label><input type="checkbox" id="sRamu" ${s.ramu ? 'checked' : ''}/> SKU Ramu Lulus</label></div>
+        <div class="form-group"><label><input type="checkbox" id="sRakit" ${s.rakit ? 'checked' : ''}/> SKU Rakit Lulus</label></div>
+        <div class="form-group"><label><input type="checkbox" id="sTerap" ${s.terap ? 'checked' : ''}/> SKU Terap Lulus</label></div>
+        <div class="modal-actions">
+          <button class="btn secondary" onclick="closeModal()">Batal</button>
+          <button class="btn" onclick="simpanSku()"><i class="fas fa-save"></i> Simpan</button>
+        </div>
+      `);
+      window.simpanSku = async () => {
+        const payload = {
+          penggalang_id: CURRENT_PENGGALANG.id,
+          ramu: document.getElementById('sRamu').checked,
+          rakit: document.getElementById('sRakit').checked,
+          terap: document.getElementById('sTerap').checked,
+          updated_at: new Date().toISOString()
+        };
+        const { error } = await supabase.from('sku').upsert(payload, { onConflict: 'penggalang_id' });
+        if (error) { alert(error.message); return; }
+        closeModal(); renderSKU();
+      };
+    };
+    return;
+  }
+  // Pembina
+  const { data } = await supabase.from('sku').select('*, penggalang(nama, regu)');
+  contentEl.innerHTML = `
+    <div class="panel">
+      <div class="panel-header"><h2><i class="fas fa-scroll"></i> SKU Semua Anggota</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Nama</th><th>Regu</th><th>Ramu</th><th>Rakit</th><th>Terap</th></tr></thead>
+          <tbody>
+            ${(data || []).map(s => `
+              <tr>
+                <td>${s.penggalang?.nama || '-'}</td>
+                <td>${s.penggalang?.regu || '-'}</td>
+                <td>${s.ramu ? '<span class="pill success">✓</span>' : '—'}</td>
+                <td>${s.rakit ? '<span class="pill success">✓</span>' : '—'}</td>
+                <td>${s.terap ? '<span class="pill success">✓</span>' : '—'}</td>
+              </tr>
+            `).join('') || '<tr><td colspan="5" style="text-align:center;color:#9ca3af">Belum ada data</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+// =========================================================
+// SKK
+// =========================================================
+async function renderSKK() {
+  if (USER_ROLE === 'penggalang') {
+    if (!CURRENT_PENGGALANG) {
+      contentEl.innerHTML = `<div class="panel"><div class="placeholder"><i class="fas fa-exclamation-circle"></i><h3>Isi biodata dulu</h3></div></div>`;
+      return;
+    }
+    const { data } = await supabase.from('skk').select('*').eq('penggalang_id', CURRENT_PENGGALANG.id).order('created_at', { ascending: false });
+    contentEl.innerHTML = `
+      <div class="panel">
+        <div class="panel-header">
+          <h2><i class="fas fa-star"></i> SKK Saya</h2>
+          <button class="btn" onclick="openSkkForm()"><i class="fas fa-plus"></i> Tambah SKK</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Nama SKK</th><th>Status</th><th>Aksi</th></tr></thead>
+            <tbody>
+              ${(data || []).map(s => `
+                <tr>
+                  <td>${s.nama_skk}</td>
+                  <td><span class="pill ${s.status === 'Lulus' ? 'success' : 'warning'}">${s.status}</span></td>
+                  <td><button class="btn danger" style="padding:5px 10px;font-size:.75rem" onclick="hapusSkk('${s.id}')"><i class="fas fa-trash"></i></button></td>
+                </tr>
+              `).join('') || '<tr><td colspan="3" style="text-align:center;color:#9ca3af">Belum ada SKK</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+    window.openSkkForm = () => {
+      openModal(`
+        <h3><i class="fas fa-star"></i> Tambah SKK</h3>
+        <div class="form-group"><label>Nama SKK</label><input id="skkNama" type="text" placeholder="SKK Pertolongan Pertama" /></div>
+        <div class="form-group"><label>Status</label>
+          <select id="skkStatus"><option>Proses</option><option>Lulus</option></select>
+        </div>
+        <div class="modal-actions">
+          <button class="btn secondary" onclick="closeModal()">Batal</button>
+          <button class="btn" onclick="simpanSkk()"><i class="fas fa-save"></i> Simpan</button>
+        </div>
+      `);
+      window.simpanSkk = async () => {
+        const nama = document.getElementById('skkNama').value.trim();
+        if (!nama) { alert('Nama SKK wajib'); return; }
+        const { error } = await supabase.from('skk').insert({
+          penggalang_id: CURRENT_PENGGALANG.id,
+          nama_skk: nama,
+          status: document.getElementById('skkStatus').value
+        });
+        if (error) { alert(error.message); return; }
+        closeModal(); renderSKK();
+      };
+    };
+    window.hapusSkk = async (id) => {
+      if (!confirm('Hapus SKK?')) return;
+      await supabase.from('skk').delete().eq('id', id);
+      renderSKK();
+    };
+    return;
+  }
+  // Pembina
+  const { data } = await supabase.from('skk').select('*, penggalang(nama, regu)');
+  contentEl.innerHTML = `
+    <div class="panel">
+      <div class="panel-header"><h2><i class="fas fa-star"></i> SKK Semua Anggota</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Nama</th><th>Regu</th><th>SKK</th><th>Status</th></tr></thead>
+          <tbody>
+            ${(data || []).map(s => `
+              <tr>
+                <td>${s.penggalang?.nama || '-'}</td>
+                <td>${s.penggalang?.regu || '-'}</td>
+                <td>${s.nama_skk}</td>
+                <td><span class="pill ${s.status === 'Lulus' ? 'success' : 'warning'}">${s.status}</span></td>
+              </tr>
+            `).join('') || '<tr><td colspan="4" style="text-align:center;color:#9ca3af">Belum ada data</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+// =========================================================
+// PEMBINA / KEGIATAN / PRESTASI / DOKUMENTASI / LAPORAN
+// =========================================================
+function renderPembina() {
+  contentEl.innerHTML = `<div class="panel"><div class="panel-header"><h2><i class="fas fa-chalkboard-user"></i> Data Pembina</h2></div><div class="placeholder"><i class="fas fa-users-gear"></i><h3>Kelola data pembina</h3><p>Fitur CRUD pembina akan tersedia di sini.</p></div></div>`;
+}
+function renderKegiatan() {
+  contentEl.innerHTML = `<div class="panel"><div class="panel-header"><h2><i class="fas fa-calendar-days"></i> Kegiatan</h2></div><div class="placeholder"><i class="fas fa-calendar-plus"></i><h3>Kelola kegiatan</h3><p>Jadwal dan agenda kepramukaan.</p></div></div>`;
+}
+function renderPrestasi() {
+  contentEl.innerHTML = `<div class="panel"><div class="panel-header"><h2><i class="fas fa-trophy"></i> Prestasi</h2></div><div class="placeholder"><i class="fas fa-medal"></i><h3>Kelola prestasi</h3><p>Pencapaian anggota dan regu.</p></div></div>`;
+}
+function renderDokumentasi() {
+  contentEl.innerHTML = `<div class="panel"><div class="panel-header"><h2><i class="fas fa-camera"></i> Dokumentasi</h2></div><div class="placeholder"><i class="fas fa-images"></i><h3>Galeri foto</h3><p>Upload dan kelola dokumentasi kegiatan.</p></div></div>`;
+}
+function renderLaporan() {
+  contentEl.innerHTML = `<div class="panel"><div class="panel-header"><h2><i class="fas fa-chart-column"></i> Laporan</h2></div><div class="placeholder"><i class="fas fa-file-export"></i><h3>Ekspor laporan</h3><p>PDF, Excel, CSV, dan cetak.</p></div></div>`;
+}
+
+// =========================================================
+// PENGATURAN
+// =========================================================
+async function renderPengaturan() {
+  contentEl.innerHTML = `
+    <div class="panel">
+      <div class="panel-header"><h2><i class="fas fa-gear"></i> Pengaturan Akun</h2></div>
+      <div class="table-wrap">
+        <table>
+          <tbody>
+            <tr><td><strong>Nama</strong></td><td>${CURRENT_PROFILE.full_name || '-'}</td></tr>
+            <tr><td><strong>Peran</strong></td><td><span class="pill info">${USER_ROLE === 'pembina' ? 'Pembina' : 'Penggalang'}</span></td></tr>
+            <tr><td><strong>Gudep</strong></td><td>PEGASUS SCOUT - SMP Negeri 1</td></tr>
+            <tr><td><strong>Versi</strong></td><td>v1.0.0</td></tr>
+          </tbody>
+        </table>
+      </div>
+      ${USER_ROLE === 'pembina' ? `
+        <div style="margin-top:20px">
+          <button class="btn secondary" onclick="gantiPeran('penggalang')"><i class="fas fa-user"></i> Ubah Jadi Penggalang</button>
+        </div>
+      ` : `
+        <div style="margin-top:20px">
+          <button class="btn secondary" onclick="gantiPeran('pembina')"><i class="fas fa-chalkboard-user"></i> Minta Jadi Pembina</button>
+        </div>
+      `}
+    </div>
+  `;
+  window.gantiPeran = async (role) => {
+    if (!confirm(`Ubah peran menjadi ${role}?`)) return;
+    await supabase.from('profiles').update({ role }).eq('id', CURRENT_USER.id);
+    location.reload();
+  };
+}
