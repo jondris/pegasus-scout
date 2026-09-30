@@ -1,1 +1,120 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Login | PEGASUS SCOUT</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚜️</text></svg>" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Roboto,sans-serif}
+body{min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at 20% 20%,rgba(255,217,102,.15),transparent 45%),radial-gradient(circle at 80% 80%,rgba(46,125,50,.25),transparent 50%),linear-gradient(135deg,#142a1e 0%,#1e3c2c 50%,#2e7d32 100%);padding:20px}
+.login-card{width:100%;max-width:440px;background:rgba(255,255,255,.98);border-radius:28px;padding:42px 36px;box-shadow:0 30px 60px -20px rgba(0,0,0,.4);position:relative;overflow:hidden;animation:fadeUp .6s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.login-card::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,#ffd966,#2e7d32)}
+.logo-wrap{text-align:center;margin-bottom:28px}
+.logo-icon{width:84px;height:84px;margin:0 auto 16px;background:linear-gradient(135deg,#ffd966,#f0b429);border-radius:24px;display:grid;place-items:center;font-size:2.4rem;color:#142a1e;box-shadow:0 16px 30px -10px rgba(255,217,102,.7);transform:rotate(-3deg)}
+.logo-wrap h1{font-size:1.5rem;color:#1e3c2c;font-weight:800;letter-spacing:1px}
+.logo-wrap p{font-size:.85rem;color:#6b7280;margin-top:4px}
+.role-title{text-align:center;font-size:.82rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px}
+.role-options{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:26px}
+.role-option{border:2px solid #e5e7eb;border-radius:16px;padding:18px 12px;text-align:center;cursor:pointer;transition:all .2s ease;background:#fff;user-select:none}
+.role-option i{font-size:1.7rem;color:#9ca3af;margin-bottom:8px;display:block;transition:color .2s}
+.role-option strong{font-size:.92rem;color:#374151;display:block}
+.role-option small{font-size:.72rem;color:#9ca3af}
+.role-option:hover{border-color:#86b886;transform:translateY(-2px)}
+.role-option.active{border-color:#2e7d32;background:linear-gradient(135deg,#f0f9f0,#e8f5e9);box-shadow:0 8px 20px -8px rgba(46,125,50,.4)}
+.role-option.active i{color:#2e7d32}
+.role-option.active strong{color:#1e3c2c}
+.btn-google{width:100%;padding:15px 20px;border-radius:14px;background:#fff;border:2px solid #e5e7eb;font-size:.95rem;font-weight:700;color:#374151;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:12px;transition:all .2s ease}
+.btn-google:hover{border-color:#2e7d32;background:#f9fdf9;transform:translateY(-2px);box-shadow:0 12px 20px -10px rgba(46,125,50,.4)}
+.btn-google:disabled{opacity:.6;cursor:not-allowed}
+.btn-google img{width:22px;height:22px}
+.divider{display:flex;align-items:center;gap:12px;margin:22px 0 18px;color:#9ca3af;font-size:.75rem}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:#e5e7eb}
+.info-box{background:#f0f9f0;border-left:4px solid #2e7d32;padding:12px 16px;border-radius:10px;font-size:.78rem;color:#2e7d32;line-height:1.5}
+.info-box i{margin-right:6px}
+.footer-note{text-align:center;margin-top:22px;font-size:.75rem;color:#9ca3af}
+@media(max-width:420px){.login-card{padding:32px 22px}.role-option{padding:14px 8px}.role-option i{font-size:1.4rem}}
+</style>
+</head>
+<body>
 
+<div class="login-card">
+  <div class="logo-wrap">
+    <div class="logo-icon"><i class="fas fa-feather-alt"></i></div>
+    <h1>PEGASUS SCOUT</h1>
+    <p>Sistem Informasi Pramuka Penggalang SMP</p>
+  </div>
+
+  <p class="role-title">Masuk Sebagai</p>
+
+  <div class="role-options">
+    <div class="role-option active" data-role="penggalang">
+      <i class="fas fa-user-group"></i>
+      <strong>Penggalang</strong>
+      <small>Anggota Pramuka</small>
+    </div>
+    <div class="role-option" data-role="pembina">
+      <i class="fas fa-chalkboard-user"></i>
+      <strong>Pembina</strong>
+      <small>Pengelola</small>
+    </div>
+  </div>
+
+  <button class="btn-google" id="btnGoogle">
+    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" />
+    <span>Lanjutkan dengan Google</span>
+  </button>
+
+  <div class="divider">atau</div>
+
+  <div class="info-box">
+    <i class="fas fa-shield-halved"></i>
+    Masuk aman menggunakan akun Google.
+  </div>
+
+  <p class="footer-note">© 2025 PEGASUS SCOUT · v1.0.0</p>
+</div>
+
+<script type="module">
+import { supabase } from './js/supabase.js';
+
+let selectedRole = 'penggalang';
+const roleOptions = document.querySelectorAll('.role-option');
+const btnGoogle = document.getElementById('btnGoogle');
+
+roleOptions.forEach(opt => {
+  opt.addEventListener('click', () => {
+    roleOptions.forEach(o => o.classList.remove('active'));
+    opt.classList.add('active');
+    selectedRole = opt.dataset.role;
+  });
+});
+
+const { data: { session } } = await supabase.auth.getSession();
+if (session) window.location.href = 'index.html';
+
+btnGoogle.addEventListener('click', async () => {
+  btnGoogle.disabled = true;
+  btnGoogle.querySelector('span').textContent = 'Menghubungkan...';
+  localStorage.setItem('pegasus_role_choice', selectedRole);
+
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.origin + window.location.pathname.replace('login.html', 'index.html'),
+      queryParams: { prompt: 'select_account' }
+    }
+  });
+
+  if (error) {
+    alert('Gagal login: ' + error.message);
+    btnGoogle.disabled = false;
+    btnGoogle.querySelector('span').textContent = 'Lanjutkan dengan Google';
+  }
+});
+</script>
+
+</body>
+</html>
